@@ -1,0 +1,103 @@
+//Sprint 4 
+#include <iostream>
+#include <fstream>
+using namespace std;
+int main() {
+    ifstream xx("my.wav", ios::binary | ios::in);
+    if (!xx) {
+        cout << "No .wav file" << endl;
+        return 1;
+    }
+
+    char header[44];
+    xx.read(header, 44);
+    xx.close();
+
+    int* sampleRate = (int*)(header + 24);
+    short* n;   n = (short*)(header + 22); //numChannels
+    int* fs = reinterpret_cast<int*>(header + 24);    // sampleRate
+    int* b;   b = (int*)(header + 28); //  byteRate
+
+    int N = fs[0]; // number of samples for 1 second
+    short* data = new short[N]; // Allocate memory for 1 second's mono data
+
+    const float pi = 3.141592;
+    float dt = 1.0 / fs[0];
+    float a, f, T;
+
+    *n = 1;  // mono
+    *b = n[0] * fs[0] * sizeof(short); // byte rate change
+
+    //Read piece
+    ifstream zz("piece.txt");
+    if (!zz) {
+        cout << "No piece found" << endl;
+        return 1;
+    }
+    int x, eu, ss;
+    char hh;
+    float getFrequency(char hh);
+    float getAmplitude(int ss);
+    float getLength(int eu);
+    zz >> x; // 음표가 몇개인지 읽기
+
+    ofstream yy("Bear.wav", ios::binary | ios::out);
+    if (!yy) {
+        cout << "Error" << endl;
+        return 1;
+    }
+
+    yy.write(header, 44 * sizeof(char));
+
+    for (int i = 0; i < x; i++) {
+        zz >> eu >> hh >> ss;
+        f = getFrequency(hh); // 주파수가 return 되는 함수
+        a = getAmplitude(ss); // 진폭이 return되는 함수
+        T = getLength(eu); // 시간이 return되는 함수
+
+        // My song 만들기
+        float t = 0;
+        for (int j = 0; j < fs[0] * T; j++, t += dt) {
+            data[j] = (short)(a * sin(2.0 * pi * f * t));
+        }
+      yy.write((char*)data, T * fs[0] * sizeof(short));
+   }
+    yy.close();
+    return 0;
+}
+float getFrequency(char hh) {
+    float f;
+    if (hh == 'C') f = 261;
+    else if (hh == 'D') f = 294;
+    else if (hh == 'E') f = 330;
+    else if (hh == 'F') f = 349;
+    else if (hh == 'G') f = 392;
+    else if (hh == 'A') f = 440;
+    else if (hh == 'B') f = 494;
+    else f = 523;
+    return f;
+}
+float getAmplitude(int ss) {
+    float a;
+    if (ss == 1) a = 1000;
+    else if (ss == 2) a = 2000;
+    else if (ss == 3) a = 3000;
+    else if (ss == 4) a = 4000;
+    else if (ss == 5) a = 5000;
+    else if (ss == 6) a = 6000;
+    else if (ss == 7) a = 7000;
+    else if (ss == 8) a = 8000;
+    else if (ss == 9) a = 9000;
+    else a = 10000;
+    return a;
+}
+float getLength(int eu) {
+   float T;
+   if (eu == 4) {
+      T = 1.0;
+   }
+   else if (eu == 8) T = 0.5;
+   else if (eu == 16) T = 0.25;
+   else T = 1.0;
+   return T;
+}
