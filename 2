@@ -1,0 +1,81 @@
+#include<iostream>
+#include<fstream>
+using namespace std;
+float getLength(int eumpyo);
+float getfrequency(int eumpyo);
+float getAmplitude(int eumpyo);
+
+
+int main() {
+   ifstream xx("Beatles-LetItBe-wav_30s.wav", ios::binary | ios::in);
+   if (!xx) return 999;  // if the file is not found
+   char header[44];
+   // Sprint 1
+   xx.read(header, 44);
+   int* sampleRate = (int*)(header + 24);
+   cout << "   sampleRate = " << *sampleRate << endl;
+   short* n;   n = (short*)(header + 22);  cout << *n << endl; // numChannels
+   int* fs;   fs = (int*)(header + 24);  cout << *fs << endl; // sampleRate
+   int* b;   b = (int*)(header + 28);  cout << *b << endl;  //  byteRate
+
+
+
+   // Sprint 3
+   int N = fs[0] * 10; // samples for 10 seconds
+   short* data;
+   data = new short[N]; // allocate memory for 10 seconds mono
+   const float pi = 3.141592;
+   float dt = 1. / fs[0];
+   *n = 1;   // stereo --> mono
+   *b = n[0] * fs[0] * sizeof(short); // byte rate change
+
+   //데이터 읽기
+   ifstream zz("piece.txt");
+   int gaesu, eu, ss;
+   char hh;
+   float f, a, T;
+   zz >> gaesu; 
+   int j = 0;
+   for (int i = 0; i < gaesu; i++) {
+      zz >> eu >> hh >> ss;  
+      f = getfrequency(hh);    
+      a = getAmplitude(ss);    
+      T = getLength(eu);       
+      
+      for (float t = 0.0; t < T; t += dt, j++) {
+         data[j] = (short)(a * sin(2.0 * pi * f * t));   
+      }
+   }
+   
+   ofstream yy("my5.wav", ios::binary | ios::out);
+   if (!yy) return 666;  
+   yy.write(header, 44 * sizeof(char)); 
+   yy.write((char*)data, N * sizeof(short));    
+   yy.close();
+   return 1;
+}
+
+float getLength(int eumpyo) {
+   float T = 0;
+   if (eumpyo == 4) T = 1.0 / 2;
+   else if (eumpyo == 8) T = 0.5 / 2; // 8분음표는 0.5초
+   else if (eumpyo == 16) T = 0.25 / 2; // 16분음표는 0.25초
+   return T;
+}
+float getfrequency(int eumpyo) {
+   float f = 0;
+   if (eumpyo == 'C') f = 261;
+   else if (eumpyo == 'D') f = 294; // D
+   else if (eumpyo == 'E') f = 330; // E
+   else if (eumpyo == 'F') f = 349; // F
+   else if (eumpyo == 'G') f = 392; // G
+   else if (eumpyo == 'A') f = 440; // A
+   else if (eumpyo == 'B') f = 494; // B
+   else  f = 523; // C
+   return f;
+}
+float getAmplitude(int eumpyo) {
+   float a = 0;
+   a = eumpyo * 1000;
+   return a;
+}
